@@ -1,0 +1,59 @@
+version: '3'
+services:
+  rkakp_app:
+    container_name: rkakp_app
+    build:
+      context: ./
+      target: production
+    volumes:
+      - .:/var/www/html
+      - .env.docker:/var/www/html/.env
+    ports:
+      - "81:80"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=rkakp_mysql
+      - DB_PORT=3306
+    networks:
+      - rkakp_network
+    depends_on:
+      - rkakp_mysql
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 300M
+        reservations:
+          cpus: '0.1'
+          memory: 100M
+  rkakp_mysql:
+    container_name: rkakp_mysql
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - 'rkakp_mysql_volume:/var/lib/mysql'
+    networks:
+      - rkakp_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1GB
+        reservations:
+          cpus: '0.5'
+          memory: 500M
+networks:
+  rkakp_network:
+    driver: bridge
+volumes:
+  rkakp_mysql_volume:
+    driver: local
